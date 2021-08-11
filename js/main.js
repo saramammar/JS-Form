@@ -1,6 +1,7 @@
 const formElem = document.querySelector('form');
 const allUsersSection = document.querySelector('#allusers .row');
 const submitBtn = document.querySelector('form [type="submit"]');
+const showHideFormBtn = document.querySelector('#showHideForm');
 let users = [];
 const formControls = ['name', 'email', 'phone', 'address'];
 const submitBtnText = {
@@ -9,6 +10,12 @@ const submitBtnText = {
 }
 let isAddMode = true;
 let currentCard;
+
+showHideFormBtn.addEventListener('click', (e) => {
+    formElem.classList.toggle('d-none');
+    formElem.classList.toggle('opened');
+    e.target.textContent = formElem.classList.contains('opened') ? 'Hide Form' : 'Show Form';
+});
 
 const setUsers = () => localStorage.setItem('users', JSON.stringify(users));
 const getUsers = () => users = JSON.parse(localStorage.getItem('users')) || [];
@@ -21,6 +28,8 @@ const deleteUser = (user) => {
 }
 
 const editUser = (user, e) => {
+    formElem.className = 'opened';
+    showHideFormBtn.textContent = 'Hide Form';
     formControls.map(control => formElem.elements[control].value = user[control]);
     submitBtn.value = submitBtnText.edit;
     currentCard = e.target.parentElement.parentElement;
@@ -65,6 +74,13 @@ const resetForm = (e) => {
     isAddMode = true;
 }
 
+// const formEdit = (user, e) => {
+//     isAddMode = false;
+//     let i = [...allUsersSection.children].indexOf(currentCard);
+//     user = users[i];
+//     setUserObj(user, e);
+// }
+
 formElem.addEventListener('submit', (e) => {
     e.preventDefault();
     let user;
@@ -72,9 +88,11 @@ formElem.addEventListener('submit', (e) => {
         isAddMode = true;
         user = { id: new Date().getTime() };
         setUserObj(user, e);
+        if (users.length === 0) allUsersSection.innerHTML = "";
         users.push(user);
     } 
     else {
+        // formEdit(user, e)
         isAddMode = false;
         let i = [...allUsersSection.children].indexOf(currentCard);
         user = users[i];
@@ -83,6 +101,8 @@ formElem.addEventListener('submit', (e) => {
     setUsers();
     showUser(user);
     resetForm(e);
+    formElem.className = 'd-none';
+    showHideFormBtn.textContent = 'Show Form';
 });
 
 showUsers();
