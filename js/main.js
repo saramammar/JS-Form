@@ -57,27 +57,32 @@ const showUsers = () => {
     users.map(user => showUser(user));
 }
 
+const setUserObj = (user, e) => formControls.map(control => user[control] = e.target.elements[control].value);
+
+const resetForm = (e) => {
+    submitBtn.value = submitBtnText.add;
+    e.target.reset()
+    isAddMode = true;
+}
+
 formElem.addEventListener('submit', (e) => {
     e.preventDefault();
     let user;
-
     if (submitBtn.value === submitBtnText.add) {
-        user = {id: new Date().getTime()};
-        formControls.map(control => user[control] = e.target.elements[control].value);
-        users.push(user);
         isAddMode = true;
-    } else {
+        user = { id: new Date().getTime() };
+        setUserObj(user, e);
+        users.push(user);
+    } 
+    else {
         isAddMode = false;
         let i = [...allUsersSection.children].indexOf(currentCard);
         user = users[i];
-        formControls.map(control => user[control] = e.target.elements[control].value);
-    }
-    submitBtn.value = submitBtnText.add;
-
+        setUserObj(user, e);
+    } 
     setUsers();
     showUser(user);
-    e.target.reset()
-    isAddMode = true;
+    resetForm(e);
 });
 
 showUsers();
