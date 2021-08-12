@@ -2,19 +2,27 @@ const formElem = document.querySelector('form');
 const allUsersSection = document.querySelector('#allusers .row');
 const submitBtn = document.querySelector('form [type="submit"]');
 const showHideFormBtn = document.querySelector('#showHideForm');
+
 let users = [];
+let isEditMode = false;
+let currentCard;
+
 const formControls = ['name', 'email', 'phone', 'address'];
 const submitBtnText = {
     add: 'Add User',
     edit: 'Edit User'
 }
-let isAddMode = true;
-let currentCard;
+const showHideFormBtnText = {
+    show: 'Show Form',
+    hide: 'Hide Form'
+}
 
 showHideFormBtn.addEventListener('click', (e) => {
     formElem.classList.toggle('d-none');
     formElem.classList.toggle('opened');
-    e.target.textContent = formElem.classList.contains('opened') ? 'Hide Form' : 'Show Form';
+    e.target.textContent = formElem.classList.contains("opened")
+      ? showHideFormBtnText.hide
+      : showHideFormBtnText.show;
 });
 
 const setUsers = () => localStorage.setItem('users', JSON.stringify(users));
@@ -28,6 +36,7 @@ const deleteUser = (user) => {
 }
 
 const editUser = (user, e) => {
+    users = getUsers();
     formElem.className = 'opened';
     showHideFormBtn.textContent = 'Hide Form';
     formControls.map(control => formElem.elements[control].value = user[control]);
@@ -49,9 +58,9 @@ const showUser = (user) => {
         </div>
     `;
 
-    isAddMode
-      ? allUsersSection.insertAdjacentHTML("beforeend", userCard)
-      : currentCard.outerHTML = userCard;
+    isEditMode
+      ? currentCard.outerHTML = userCard
+      : allUsersSection.insertAdjacentHTML("beforeend", userCard);
     
     document.querySelector(`#del-${user.id}`).addEventListener('click', () => deleteUser(user));
     document.querySelector(`#edit-${user.id}`).addEventListener('click', (e) => editUser(user, e));
@@ -71,38 +80,35 @@ const setUserObj = (user, e) => formControls.map(control => user[control] = e.ta
 const resetForm = (e) => {
     submitBtn.value = submitBtnText.add;
     e.target.reset()
-    isAddMode = true;
+    isEditMode = false;
 }
 
-// const formEdit = (user, e) => {
-//     isAddMode = false;
-//     let i = [...allUsersSection.children].indexOf(currentCard);
-//     user = users[i];
-//     setUserObj(user, e);
-// }
+const formAdd = (user, e) => {
+    isEditMode = false;
+    user = { id: new Date().getTime() };
+    setUserObj(user, e);
+    if (users.length === 0) allUsersSection.innerHTML = "";
+    users.push(user);
+    return user;
+}
+
+const formEdit = (user, e) => {
+    isEditMode = true;
+    let i = [...allUsersSection.children].indexOf(currentCard);
+    user = users[i];
+    setUserObj(user, e);
+    return user;
+}
 
 formElem.addEventListener('submit', (e) => {
     e.preventDefault();
     let user;
-    if (submitBtn.value === submitBtnText.add) {
-        isAddMode = true;
-        user = { id: new Date().getTime() };
-        setUserObj(user, e);
-        if (users.length === 0) allUsersSection.innerHTML = "";
-        users.push(user);
-    } 
-    else {
-        // formEdit(user, e)
-        isAddMode = false;
-        let i = [...allUsersSection.children].indexOf(currentCard);
-        user = users[i];
-        setUserObj(user, e);
-    } 
+    user = (submitBtn.value === submitBtnText.add) ? formAdd(user, e) : formEdit(user, e);
     setUsers();
     showUser(user);
     resetForm(e);
     formElem.className = 'd-none';
-    showHideFormBtn.textContent = 'Show Form';
+    showHideFormBtn.textContent = showHideFormBtnText.show;
 });
 
 showUsers();
